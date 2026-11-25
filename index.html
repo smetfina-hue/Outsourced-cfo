@@ -731,8 +731,14 @@
   </div>
 </footer>
 
+<!-- ОБНОВЛЕННЫЙ СКРИПТ ДЛЯ ОТПРАВКИ В TELEGRAM -->
 <script>
-  // Валидация формы + экран «спасибо»
+  // ==========================================
+  // ⚠️ ВАЖНО: ЗАМЕНИТЕ ТЕКСТ В КАВЫЧКАХ НА СВОИ ДАННЫЕ
+  // ==========================================
+  const TG_TOKEN = '9047432757:ВАШ_ТОКЕН_ИЗ_BOTFATHER'; 
+  const TG_CHAT_ID = 'ВАШ_ID_ИЗ_ССЫЛКИ'; // Например: '123456789'
+  
   const form = document.getElementById('leadForm');
 
   form.addEventListener('submit', function (e) {
@@ -741,7 +747,10 @@
     const name = form.name.value.trim();
     const phone = form.phone.value.trim();
     const email = form.email.value.trim();
+    const company = form.company.value.trim();
+    const task = form.task.value.trim();
 
+    // Валидация
     if (!name) {
       alert('Пожалуйста, укажите, как к вам обращаться');
       form.name.focus();
@@ -758,21 +767,61 @@
       return;
     }
 
-    // Показываем экран «спасибо» вместо формы
-    const wrap = form.parentElement;
-    wrap.innerHTML = `
-      <h2>Спасибо! Заявка получена</h2>
-      <p class="form-sub">
-        Свяжемся с вами в течение рабочего дня, договоримся о короткой встрече
-        и обсудим вашу задачу.
-      </p>
-      <p class="form-sub" style="margin-bottom:26px;">
-        А пока, если хотите подготовиться, подумайте, какие данные у вас уже есть:
-        отчёты, выгрузки, таблицы. Это ускорит разбор.
-      </p>
-      <a href="#" class="btn btn-primary" style="width:100%;justify-content:center;">→ Вернуться на сайт</a>
+    // Меняем кнопку на "Отправка..."
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.innerHTML;
+    submitBtn.innerHTML = 'Отправка...';
+    submitBtn.disabled = true;
+
+    // Формируем сообщение для Telegram
+    const text = `
+🔥 <b>Новая заявка с сайта!</b>
+
+👤 <b>Имя:</b> ${name}
+📞 <b>Телефон:</b> ${phone}
+📧 <b>Email:</b> ${email || 'Не указан'}
+🏢 <b>Компания:</b> ${company || 'Не указана'}
+📝 <b>Задача:</b> ${task || 'Не указана'}
     `;
-    window.scrollTo({ top: wrap.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+
+    // Отправка в Telegram Bot API
+    fetch(`https://api.telegram.org/bot${'9047432757:AAE9MB6LcK_wf4D0MNltTii3lQYwCDMXZk8'}/sendMessage`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: '558717789',
+        text: text,
+        parse_mode: 'HTML'
+      })
+    })
+    .then(response => {
+      if (!response.ok) throw new Error('Ошибка сети');
+      
+      // Показываем экран «Спасибо»
+      const wrap = form.parentElement;
+      wrap.innerHTML = `
+        <h2>Спасибо! Заявка получена</h2>
+        <p class="form-sub">
+          Свяжемся с вами в течение рабочего дня, договоримся о короткой встрече
+          и обсудим вашу задачу.
+        </p>
+        <p class="form-sub" style="margin-bottom:26px;">
+          А пока, если хотите подготовиться, подумайте, какие данные у вас уже есть:
+          отчёты, выгрузки, таблицы. Это ускорит разбор.
+        </p>
+        <a href="#" class="btn btn-primary" style="width:100%;justify-content:center;">→ Вернуться на сайт</a>
+      `;
+      window.scrollTo({ top: wrap.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+    })
+    .catch(error => {
+      // Если ошибка (например, неверный токен)
+      console.error(error);
+      alert('Произошла ошибка при отправке. Пожалуйста, попробуйте позже или свяжитесь с нами напрямую.');
+      submitBtn.innerHTML = originalBtnText;
+      submitBtn.disabled = false;
+    });
   });
 </script>
 
